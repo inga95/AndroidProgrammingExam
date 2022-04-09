@@ -65,17 +65,14 @@ class MainActivity : AppCompatActivity() {
                 imageInfo.add(it)
             }
             val adapter = Adapter(this, imageInfo)
-            binding.recyclerView.layoutManager = LinearLayoutManager(this)
+            binding.imageView.layoutManager = LinearLayoutManager(this)
             binding.recyclerView.adapter=adapter
-            binding.
         }, Response.ErrorListener {
             Toast.makeText(applicationContext, it.toString(), Toast.LENGTH_LONG).show()
 
         })
         val volleyQueue = Volley.newRequestQueue(this)
         volleyQueue.add(stringRequest)
-
-
 
 
         //setContentView(R.layout.activity_main)
