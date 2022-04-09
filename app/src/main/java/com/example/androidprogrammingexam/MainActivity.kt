@@ -8,9 +8,16 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat.startActivityForResult
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.android.volley.Request
+import com.android.volley.RequestQueue
 import com.android.volley.Response
+import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
+import org.json.JSONException
 import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
@@ -21,6 +28,12 @@ class MainActivity : AppCompatActivity() {
     private val postURL: String = "http://api-edu.gtl.ai/api/v1/imagesearch/upload"
     // remember to use your own api
 
+    val imageList = ArrayList<ImageApi>()
+    private lateinit var imagesRV: RecyclerView
+    private var requestQueue: RequestQueue? = null
+
+
+
     companion object {
         private const val IMAGE_PICK_CODE = 999
     }
@@ -28,6 +41,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        imagesRV = findViewById(R.id.recyclerView)
+        imagesRV.layoutManager = StaggeredGridLayoutManager(3, LinearLayoutManager.VERTICAL)
+
+
 
         imageView = findViewById(R.id.imageView)
 
@@ -37,7 +55,10 @@ class MainActivity : AppCompatActivity() {
         }
         sendButton = findViewById(R.id.sendButton)
         sendButton.setOnClickListener {
+            var image = dogNameText.text.toString()
+
             uploadImage()
+            searchImages(image)
         }
     }
 
@@ -79,6 +100,29 @@ class MainActivity : AppCompatActivity() {
             imageData = it.readBytes()
         }
     }
+
+private fun searchImages(image: String) {
+    imageList.clear()
+
+    val url = "http://api-edu.gtl.ai/api/v1/imagesearch/bing"
+
+    val request = JsonObjectRequest(Request.Method.GET, url, null, {
+            response ->try {
+        val jsonArray = response.getJSONArray("images")
+
+        for(i in image.indices){
+            val list = image[i]
+            imageList.add(
+                ImageApi(list.toString())
+            )
+        }
+        imagesRV.adapter = ImageAdapter(this@MainActivity, imageList)
+    } catch (e: JSONException) {
+        e.printStackTrace()
+    }
+    }, { error -> error.printStackTrace() })
+    requestQueue?.add(request)
+}
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == Activity.RESULT_OK && requestCode == IMAGE_PICK_CODE) {
